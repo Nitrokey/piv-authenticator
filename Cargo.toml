@@ -34,7 +34,7 @@ vpicc = { version = "0.1.0", optional = true }
 log = "0.4"
 heapless-bytes = "0.3.0"
 subtle = { version = "2", default-features = false }
-trussed-rsa-alloc = { git = "https://github.com/Nitrokey/trussed-rsa-backend.git", rev = "e29b26ab3800217b7eb73ecde67134bbb3acb9da", features = ["raw"] }
+trussed-rsa-alloc = { version = "0.1.0", features = ["raw"] }
 
 [dev-dependencies]
 littlefs2 = "0.3.2"
@@ -74,6 +74,7 @@ log-error = []
 [patch.crates-io]
  trussed = { git = "https://github.com/Nitrokey/trussed", tag = "v0.1.0-nitrokey.8"}
 littlefs2 = { git = "https://github.com/Nitrokey/littlefs2", tag = "v0.3.2-nitrokey-2" }
+trussed-rsa-alloc = { git = "https://github.com/Nitrokey/trussed-rsa-backend.git", rev = "311d2366f99cc300b03d61e7f6a0a07abd3e8700" }
 
 [profile.dev.package.rsa]
 opt-level = 2
