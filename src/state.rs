@@ -5,11 +5,12 @@ use flexiber::EncodableHeapless;
 use heapless::Vec;
 use heapless_bytes::Bytes;
 use iso7816::Status;
+use littlefs2::path;
 use trussed::{
     api::reply::Metadata,
     config::MAX_MESSAGE_LENGTH,
     syscall, try_syscall,
-    types::{KeyId, KeySerialization, Location, Mechanism, PathBuf, StorageAttributes},
+    types::{KeyId, KeySerialization, Location, Mechanism, Path, PathBuf, StorageAttributes},
 };
 use trussed_chunked::utils;
 
@@ -314,7 +315,7 @@ impl Persistent {
     pub const PIN_RETRIES_DEFAULT: u8 = 3;
     // hmm...!
     pub const PUK_RETRIES_DEFAULT: u8 = 5;
-    const FILENAME: &'static [u8] = b"persistent-state.cbor";
+    const FILENAME: &'static Path = path!("persistent-state.cbor");
     const DEFAULT_PIN: Pin = Pin(*b"123456\xff\xff");
     const DEFAULT_PUK: Puk = Puk(*b"12345678");
 
@@ -563,7 +564,7 @@ impl Persistent {
         options: &crate::Options,
     ) -> Result<Self, Status> {
         // todo: can't seem to combine load + initialize without code repetition
-        let data = load_if_exists(client, options.storage, &PathBuf::from(Self::FILENAME))?;
+        let data = load_if_exists(client, options.storage, Self::FILENAME)?;
         let Some(bytes) = data else {
             return Self::initialize(client, options);
         };
@@ -592,11 +593,11 @@ impl Persistent {
 fn load_if_exists(
     client: &mut impl crate::Client,
     location: Location,
-    path: &PathBuf,
+    path: &Path,
 ) -> Result<Option<Bytes<MAX_MESSAGE_LENGTH>>, Status> {
-    match try_syscall!(client.read_file(location, path.clone())) {
+    match try_syscall!(client.read_file(location, path.into())) {
         Ok(r) => Ok(Some(r.data)),
-        Err(_) => match try_syscall!(client.entry_metadata(location, path.clone())) {
+        Err(_) => match try_syscall!(client.entry_metadata(location, path.into())) {
             Ok(Metadata { metadata: None }) => Ok(None),
             Ok(Metadata {
                 metadata: Some(_metadata),
@@ -672,7 +673,7 @@ pub struct ContainerStorage(pub Container);
 
 impl ContainerStorage {
     fn path(self) -> PathBuf {
-        PathBuf::from(match self.0 {
+        PathBuf::try_from(match self.0 {
             Container::CardCapabilityContainer => "CardCapabilityContainer",
             Container::CardHolderUniqueIdentifier => "CardHolderUniqueIdentifier",
             Container::X509CertificateFor9A => "X509CertificateFor9A",
@@ -711,7 +712,7 @@ impl ContainerStorage {
             }
             Container::SecureMessagingCertificateSigner => "SecureMessagingCertificateSigner",
             Container::PairingCodeReferenceDataContainer => "PairingCodeReferenceDataContainer",
-        })
+        }).unwrap()
     }
 
     fn default(self) -> Option<Vec<u8, MAX_MESSAGE_LENGTH>> {
