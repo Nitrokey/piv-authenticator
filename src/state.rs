@@ -5,7 +5,7 @@ use flexiber::EncodableHeapless;
 use heapless::Vec;
 use heapless_bytes::Bytes;
 use iso7816::Status;
-use littlefs2::path;
+use littlefs2_core::path;
 use trussed::Client;
 use trussed::{
     api::reply::Metadata,
