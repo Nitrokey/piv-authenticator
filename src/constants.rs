@@ -24,7 +24,7 @@ pub const PIV_TRUNCATED_AID: [u8; 9] = hex!("A000000308 00001000");
 
 // pub const PIV_AID: &[u8] = &hex!("A000000308 00001000 0100");
 pub const PIV_AID: iso7816::Aid =
-    iso7816::Aid::new_truncatable(&hex!("A000000308 00001000 0100"), 9);
+    iso7816::Aid::new_truncatable(&hex!("A000000308 00001000 0100"), 5);
 
 pub const DERIVED_PIV_AID: [u8; 11] = hex!("A000000308 00002000 0100");
 
