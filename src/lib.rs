@@ -481,7 +481,7 @@ impl<'a, T: Client> LoadedAuthenticator<'a, T> {
             exponentiation: tlv::get_do(&[0x85], input),
         };
 
-        error!(
+        debug!(
             "witness: {}, challenge: {}, response: {}, exponentiation: {}",
             &parsed.witness.is_some(),
             &parsed.challenge.is_some(),
@@ -700,7 +700,7 @@ impl<'a, T: Client> LoadedAuthenticator<'a, T> {
         just_verified: bool,
         mut reply: Reply<'_, R>,
     ) -> Result {
-        error!("Request for sign, data length: {}, data:", message.len());
+        debug!("Request for sign, data length: {}, data:", message.len());
         // error!("{}", delog::hexstr!(message));
 
         let Ok(key_ref) = auth.key_reference.try_into() else {
@@ -736,7 +736,7 @@ impl<'a, T: Client> LoadedAuthenticator<'a, T> {
             reply.append_len(response.len())?;
             reply.expand(&response)?;
         }
-        error!("Signed data len: {}, Data:", response.len());
+        debug!("Signed data len: {}, Data:", response.len());
         // error!("{}", delog::hexstr!(&response));
 
         reply.prepend_len(offset)?;
