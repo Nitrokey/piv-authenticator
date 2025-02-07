@@ -306,7 +306,7 @@ impl Drop for UseValidKey {
     }
 }
 
-impl<'t> LoadedState<'t> {
+impl LoadedState<'_> {
     pub fn key_exists(
         &self,
         client: &mut impl crate::Client,
