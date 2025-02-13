@@ -14,13 +14,43 @@
         ]
     ),
     IoTest(
+        name: "Bad management key",
+        cmd_resp: [
+            AuthenticateManagement(
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 FFFFFFFFFFFFFFFF"
+                ),
+                mutual: false,
+                expected_status_response: IncorrectDataParameter,
+            ),
+            AuthenticateManagement(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                mutual: false,
+                expected_status_challenge: IncorrectP1OrP2Parameter,
+            ),
+            // Admin commands then must fail
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                expected_status: SecurityStatusNotSatisfied,
+            ),
+        ]
+    ),
+    IoTest(
         name: "Default management key",
         cmd_resp: [
             AuthenticateManagement(
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             )
         ]
     ),
@@ -31,7 +61,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             SetManagementKey(
                 key: (
@@ -43,7 +74,34 @@
                 key: (
                     algorithm: Aes256,
                     key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                mutual: false,
+            )
+        ]
+    ),
+    IoTest(
+        name: "Bad Aes management key",
+        cmd_resp: [
+            AuthenticateManagement(
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 0102030405060708"
+                ),
+                mutual: false,
+            ),
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
                 )
+            ),
+            AuthenticateManagement(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 FFFFFFFFFFFFFFFF"
+                ),
+                mutual: false,
+                expected_status_response: IncorrectDataParameter,
             )
         ]
     ),
@@ -62,8 +120,120 @@
                     algorithm: Aes256,
                     key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
                 ),
+                mutual: false,
                 expected_status_challenge: IncorrectP1OrP2Parameter,
-                expected_status_response: IncorrectP1OrP2Parameter,
+            )
+        ]
+    ),
+    IoTest(
+        name: "Bad management key Mutual Auth",
+        cmd_resp: [
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 FFFFFFFFFFFFFFFF"
+                ),
+                expected_status_response: IncorrectDataParameter,
+            ),
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                expected_status_challenge: IncorrectP1OrP2Parameter,
+            ),
+            // Admin commands then must fail
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                expected_status: SecurityStatusNotSatisfied,
+            ),
+        ]
+    ),
+    IoTest(
+        name: "Default management key Mutual Auth",
+        cmd_resp: [
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 0102030405060708"
+                )
+            )
+        ]
+    ),
+    IoTest(
+        name: "Aes management key Mutual Auth",
+        cmd_resp: [
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 0102030405060708"
+                )
+            ),
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                )
+            ),
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                )
+            )
+        ]
+    ),
+    IoTest(
+        name: "Bad Aes management key Mutual Auth",
+        cmd_resp: [
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Tdes,
+                    key: "0102030405060708 0102030405060708 0102030405060708"
+                )
+            ),
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                )
+            ),
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 FFFFFFFFFFFFFFFF"
+                ),
+                expected_status_response: IncorrectDataParameter,
+            )
+        ]
+    ),
+    IoTest(
+        name: "unauthenticated set management key Mutual Auth",
+        cmd_resp: [
+            SetManagementKey(
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                expected_status: SecurityStatusNotSatisfied,
+            ),
+            AuthenticateManagement(
+                mutual: true,
+                key: (
+                    algorithm: Aes256,
+                    key: "0102030405060708 0102030405060708 0102030405060708 0102030405060708"
+                ),
+                expected_status_challenge: IncorrectP1OrP2Parameter,
             )
         ]
     ),
@@ -74,7 +244,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             IoData(
                 input: "00 47 009A 05
@@ -107,7 +278,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             PutData(
                 input: "5C 03 5FC102 53 10 000102030405060708090A0B0C0D0E0F",
@@ -149,7 +321,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             PutData(
                 input: "5C 03 5FC102 53 3b 3019d4e739d821086c1084210d8360d8210842108421804210c3f3341000112233445566778899aabbccddeeff350839393939313233313e00fe00",
@@ -172,7 +345,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             PutData(
                 input: "5C 03 5FC102 53 3b 3019d4e739d821086c1084210d8360d8210842108421804210c3f33410B0BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB30839393939313233313e00fe00",
@@ -227,7 +401,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             ImportRsaKey(
                 p: "f39c20ab767b26d5a086b6b4d3bf354d1e08fed0d6d473f70ca89240ddd6f4727c16d0085879d24474d200858a13d17fe388237a5c0477ceb43b0a38111d062378fdec70acb10d0c1970b23ed14f920e8d235d67df7d09006b1d38c58d6ee68df046a00f67e190c466660a27775bc595c914d82959a0d327725311e9291f7829",
@@ -262,7 +437,8 @@
                 key: (
                     algorithm: Tdes,
                     key: "0102030405060708 0102030405060708 0102030405060708"
-                )
+                ),
+                mutual: false,
             ),
             GetData(
                 input: "5C 03 5FC108",
