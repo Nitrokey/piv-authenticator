@@ -909,8 +909,25 @@ impl<T: Client> LoadedAuthenticator<'_, T> {
                 reply.expand(&serialized_key)?;
                 reply.prepend_len(offset)?;
             }
+            AsymmetricAlgorithms::P384 => {
+                let serialized_key = syscall!(self.trussed.serialize_key(
+                    parsed_mechanism.key_mechanism(),
+                    public_key,
+                    KeySerialization::Raw
+                ))
+                .serialized_key;
+                reply.expand(&[0x7F, 0x49])?;
+                let offset = reply.len();
+                reply.expand(&[0x86])?;
+                reply.append_len(serialized_key.len() + 1)?;
+                reply.expand(&[0x04])?;
+                reply.expand(&serialized_key)?;
+                reply.prepend_len(offset)?;
+            }
             #[cfg(feature = "rsa")]
-            AsymmetricAlgorithms::Rsa2048 | AsymmetricAlgorithms::Rsa4096 => {
+            AsymmetricAlgorithms::Rsa2048
+            | AsymmetricAlgorithms::Rsa3072
+            | AsymmetricAlgorithms::Rsa4096 => {
                 use trussed_rsa_alloc::RsaPublicParts;
                 reply.expand(&[0x7F, 0x49])?;
                 let offset = reply.len();
@@ -1064,13 +1081,18 @@ impl<T: Client> LoadedAuthenticator<'_, T> {
         match (algo, key) {
             // TODO: document Here we do not exactly follow the Yubico extensions to fit better with our RSA backend requirements
             #[cfg(feature = "rsa")]
-            (AsymmetricAlgorithms::Rsa2048, AsymmetricKeyReference::PivAuthentication) => {
+            (
+                AsymmetricAlgorithms::Rsa2048
+                | AsymmetricAlgorithms::Rsa3072
+                | AsymmetricAlgorithms::Rsa4096,
+                AsymmetricKeyReference::PivAuthentication,
+            ) => {
                 use trussed_rsa_alloc::RsaImportFormat;
                 let p = tlv::get_do(&[0x01], data).ok_or(Status::IncorrectDataParameter)?;
                 let q = tlv::get_do(&[0x02], data).ok_or(Status::IncorrectDataParameter)?;
                 let e = tlv::get_do(&[0x03], data).ok_or(Status::IncorrectDataParameter)?;
                 let id = syscall!(self.trussed.unsafe_inject_key(
-                    Mechanism::Rsa2048Raw,
+                    algo.key_mechanism(),
                     &RsaImportFormat { e, p, q }.serialize().map_err(|_err| {
                         error!("Failed rsa import serialization: {_err:?}");
                         Status::UnspecifiedNonpersistentExecutionError
